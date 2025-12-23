@@ -9,6 +9,7 @@
 
 // Forward declarations
 class Entity;
+class Spaceship;
 
 enum class GameState {
     Menu,
@@ -49,6 +50,9 @@ private:
     GameState state;
     bool isRunning;
     
-    // Entities
+    // Player
+    std::unique_ptr<Spaceship> player;
+    
+    // Other entities (enemies, power-ups, etc.)
     std::vector<std::unique_ptr<Entity>> entities;
 };

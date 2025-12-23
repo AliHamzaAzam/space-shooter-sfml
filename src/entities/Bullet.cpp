@@ -1,29 +1,40 @@
 #include "Bullet.hpp"
+#include "../ResourceManager.hpp"
+#include <iostream>
 
-Bullet::Bullet(float x, float y) {
+Bullet::Bullet(ResourceManager& resources, float x, float y) {
     setPosition(x, y);
-    setVelocity(0.f, -1.f); // Default: move upward
-    // TODO: Load texture with initSprite()
+    setVelocity(0.f, -1.f);  // Move upward
+    
+    // Load bullet texture
+    try {
+        auto& texture = resources.getTexture("PNG/Lasers/laserBlue01.png");
+        initSprite(texture);
+        sprite->setScale({0.75f, 0.75f});
+        sprite->setPosition(position);
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to load bullet texture: " << e.what() << std::endl;
+    }
 }
 
 void Bullet::update(float dt) {
-    position += velocity * speed * dt * 60.f; // Scale for 60fps equivalent
+    if (destroyed) return;
+    
+    // Move bullet
+    position += velocity * speed * dt;
+    
     if (sprite) {
         sprite->setPosition(position);
     }
     
-    // Remove if off screen
-    if (position.y < -50.f || position.y > 1050.f) {
+    // Destroy if off screen
+    if (position.y < -50.f || position.y > SCREEN_HEIGHT + 50.f) {
         destroy();
     }
 }
 
 void Bullet::draw(sf::RenderWindow& window) const {
-    if (sprite) {
+    if (sprite && !destroyed) {
         window.draw(*sprite);
     }
-}
-
-void Bullet::setDirection(float dx, float dy) {
-    velocity = {dx, dy};
 }

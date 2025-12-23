@@ -1,26 +1,30 @@
 #pragma once
 
 #include "Entity.hpp"
-#include "../ResourceManager.hpp"
 #include <vector>
 #include <memory>
+#include <string>
+#include <unordered_set>
 
 class Bullet;
+class ResourceManager;
 
 class Spaceship : public Entity {
 public:
-    Spaceship();
-    ~Spaceship() override = default;
+    Spaceship(ResourceManager& resources);
+    ~Spaceship() override;
     
     void update(float dt) override;
     void draw(sf::RenderWindow& window) const override;
     
-    void move(const std::string& direction);
-    void fire();
+    // Input handling via events
+    void onKeyPressed(sf::Keyboard::Key key);
+    void onKeyReleased(sf::Keyboard::Key key);
     
     // Getters
     int getHealth() const { return health; }
     int getScore() const { return score; }
+    std::vector<std::unique_ptr<Bullet>>& getBullets() { return bullets; }
     
     // Setters
     void addScore(int points) { score += points; }
@@ -29,15 +33,25 @@ public:
 
 private:
     void wrapAroundScreen();
+    void updateBullets(float dt);
+    void fire();
     
 private:
+    ResourceManager& resources;
     std::vector<std::unique_ptr<Bullet>> bullets;
     sf::Clock fireCooldown;
     
-    float speed = 10.f;
+    // Track pressed keys
+    std::unordered_set<sf::Keyboard::Key> pressedKeys;
+    
+    float maxSpeed = 400.f;      // max pixels per second
+    float acceleration = 800.f;  // acceleration rate
+    float friction = 600.f;      // deceleration when no input
     int health = 3;
     int score = 0;
     
     static constexpr float FIRE_COOLDOWN_MS = 200.f;
     static constexpr int MAX_HEALTH = 3;
+    static constexpr float SCREEN_WIDTH = 1000.f;
+    static constexpr float SCREEN_HEIGHT = 1000.f;
 };

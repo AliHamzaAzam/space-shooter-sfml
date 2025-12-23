@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include "entities/Entity.hpp"
+#include "entities/Spaceship.hpp"
 #include <iostream>
 #include <filesystem>
 
@@ -23,11 +24,15 @@ Game::Game()
         std::cerr << "Warning: " << e.what() << std::endl;
     }
     
+    // Create player
+    player = std::make_unique<Spaceship>(resources);
+    
     std::cout << "Game initialized successfully!" << std::endl;
 }
 
 Game::~Game() {
     // Clear sprites BEFORE resources are destroyed
+    player.reset();
     background.reset();
     entities.clear();
     resources.clear();
@@ -78,10 +83,18 @@ void Game::handleKeyPress(sf::Keyboard::Key key) {
             std::cout << "Game resumed" << std::endl;
         }
     }
+    
+    // Forward to player
+    if (player && state == GameState::Playing) {
+        player->onKeyPressed(key);
+    }
 }
 
 void Game::handleKeyRelease(sf::Keyboard::Key key) {
-    // Handle key releases if needed
+    // Forward to player
+    if (player) {
+        player->onKeyReleased(key);
+    }
 }
 
 void Game::update(float dt) {
@@ -89,7 +102,12 @@ void Game::update(float dt) {
         return;
     }
     
-    // Update all entities
+    // Update player
+    if (player) {
+        player->update(dt);
+    }
+    
+    // Update all other entities
     for (auto& entity : entities) {
         entity->update(dt);
     }
@@ -109,7 +127,12 @@ void Game::render() {
         window.draw(*background);
     }
     
-    // Draw all entities
+    // Draw player
+    if (player) {
+        player->draw(window);
+    }
+    
+    // Draw all other entities
     for (const auto& entity : entities) {
         entity->draw(window);
     }
