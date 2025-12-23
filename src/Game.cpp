@@ -1,6 +1,10 @@
 #include "Game.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Spaceship.hpp"
+#include "entities/Bullet.hpp"
+#include "entities/enemies/Enemy.hpp"
+#include "entities/enemies/Bomb.hpp"
+#include "entities/enemies/InvaderTypes.hpp"
 #include <iostream>
 #include <filesystem>
 
@@ -27,16 +31,34 @@ Game::Game()
     // Create player
     player = std::make_unique<Spaceship>(resources);
     
+    // Spawn test enemies
+    spawnTestEnemies();
+    
     std::cout << "Game initialized successfully!" << std::endl;
 }
 
 Game::~Game() {
     // Clear sprites BEFORE resources are destroyed
     player.reset();
+    enemies.clear();
     background.reset();
     entities.clear();
     resources.clear();
     std::cout << "Game shutting down..." << std::endl;
+}
+
+void Game::spawnTestEnemies() {
+    // Spawn a row of each type
+    for (int i = 0; i < 5; i++) {
+        enemies.push_back(std::make_unique<Alpha>(resources, 150.f + i * 150.f, 100.f));
+    }
+    for (int i = 0; i < 5; i++) {
+        enemies.push_back(std::make_unique<Beta>(resources, 150.f + i * 150.f, 220.f));
+    }
+    for (int i = 0; i < 5; i++) {
+        enemies.push_back(std::make_unique<Gamma>(resources, 150.f + i * 150.f, 340.f));
+    }
+    std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
 }
 
 void Game::run() {
@@ -107,12 +129,77 @@ void Game::update(float dt) {
         player->update(dt);
     }
     
-    // Update all other entities
+    // Update enemies (pass player position for aimed bombs)
+    for (auto& enemy : enemies) {
+        if (player) {
+            enemy->setPlayerPosition(player->getPosition().x, player->getPosition().y);
+        }
+        enemy->update(dt);
+    }
+    
+    // Update other entities
     for (auto& entity : entities) {
         entity->update(dt);
     }
     
-    // Remove destroyed entities
+    // Check collisions
+    checkCollisions();
+    
+    // Cleanup destroyed entities
+    cleanupDestroyedEntities();
+}
+
+void Game::checkCollisions() {
+    if (!player) return;
+    
+    auto& bullets = player->getBullets();
+    
+    // Check each bullet against each enemy
+    for (auto& bullet : bullets) {
+        if (bullet->isDestroyed()) continue;
+        
+        for (auto& enemy : enemies) {
+            if (enemy->isDestroyed() || enemy->isDead()) continue;
+            
+            // Check collision
+            if (bullet->intersects(*enemy)) {
+                bullet->markHit();
+                enemy->takeDamage(1);
+                
+                if (enemy->isDead()) {
+                    player->addScore(enemy->getScoreValue());
+                    std::cout << "Score: " << player->getScore() << std::endl;
+                }
+                break;  // Bullet can only hit one enemy
+            }
+        }
+    }
+    
+    // Check enemy bombs against player
+    for (auto& enemy : enemies) {
+        auto* bomb = enemy->getActiveBomb();
+        if (bomb && !bomb->isDestroyed()) {
+            if (bomb->intersects(*player)) {
+                bomb->markHit();
+                player->damage(1);
+                if (player->getHealth() <= 0) {
+                    state = GameState::GameOver;
+                    std::cout << "GAME OVER! Final Score: " << player->getScore() << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void Game::cleanupDestroyedEntities() {
+    // Remove destroyed enemies
+    enemies.erase(
+        std::remove_if(enemies.begin(), enemies.end(),
+            [](const auto& e) { return e->isDestroyed(); }),
+        enemies.end()
+    );
+    
+    // Remove other destroyed entities
     entities.erase(
         std::remove_if(entities.begin(), entities.end(),
             [](const auto& e) { return e->isDestroyed(); }),
@@ -127,12 +214,17 @@ void Game::render() {
         window.draw(*background);
     }
     
+    // Draw enemies
+    for (const auto& enemy : enemies) {
+        enemy->draw(window);
+    }
+    
     // Draw player
     if (player) {
         player->draw(window);
     }
     
-    // Draw all other entities
+    // Draw other entities
     for (const auto& entity : entities) {
         entity->draw(window);
     }

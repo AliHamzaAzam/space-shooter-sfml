@@ -16,6 +16,10 @@ set(SOURCES
     src/entities/Entity.cpp
     src/entities/Spaceship.cpp
     src/entities/Bullet.cpp
+    src/entities/enemies/Bomb.cpp
+    src/entities/enemies/Enemy.cpp
+    src/entities/enemies/Invader.cpp
+    src/entities/enemies/InvaderTypes.cpp
 )
 
 # Headers
@@ -25,6 +29,10 @@ set(HEADERS
     src/entities/Entity.hpp
     src/entities/Spaceship.hpp
     src/entities/Bullet.hpp
+    src/entities/enemies/Bomb.hpp
+    src/entities/enemies/Enemy.hpp
+    src/entities/enemies/Invader.hpp
+    src/entities/enemies/InvaderTypes.hpp
 )
 
 # Create executable

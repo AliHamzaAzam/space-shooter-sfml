@@ -10,6 +10,7 @@
 // Forward declarations
 class Entity;
 class Spaceship;
+class Enemy;
 
 enum class GameState {
     Menu,
@@ -35,6 +36,11 @@ private:
     
     void handleKeyPress(sf::Keyboard::Key key);
     void handleKeyRelease(sf::Keyboard::Key key);
+    
+    // Game logic
+    void spawnTestEnemies();
+    void checkCollisions();
+    void cleanupDestroyedEntities();
 
 private:
     static constexpr unsigned int WINDOW_WIDTH = 1000;
@@ -53,6 +59,9 @@ private:
     // Player
     std::unique_ptr<Spaceship> player;
     
-    // Other entities (enemies, power-ups, etc.)
+    // Enemies
+    std::vector<std::unique_ptr<Enemy>> enemies;
+    
+    // Other entities (power-ups, etc.)
     std::vector<std::unique_ptr<Entity>> entities;
 };
