@@ -1,0 +1,28 @@
+# Build directories
+build/
+cmake-build-*/
+.cmake/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Compiled objects
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+
+# macOS
+.DS_Store
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Old project reference (can be removed later)
