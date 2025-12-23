@@ -12,6 +12,10 @@ Monster::Monster(ResourceManager& resources, int x, int y)
     // Scale down the large monster sprite
     sprite->setScale({0.4f, 0.4f});
     
+    // Center the sprite origin
+    auto bounds = sprite->getLocalBounds();
+    sprite->setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
+    
     position = {static_cast<float>(x), static_cast<float>(y)};
     sprite->setPosition(position);
     
@@ -55,8 +59,10 @@ void Monster::update(float dt) {
     if (bombTimer >= getBombCooldown()) {
         bombTimer = 0.f;
         
-        float baseX = position.x + 80.f;
-        float baseY = position.y + 150.f;
+        // Get scaled sprite size for proper positioning
+        auto bounds = sprite->getGlobalBounds();
+        float baseX = position.x;  // Centered on monster
+        float baseY = position.y + bounds.size.y / 2.f + 10.f;  // Below monster
         float speed = getBombSpeed();
         
         // Calculate direction toward player
@@ -72,7 +78,7 @@ void Monster::update(float dt) {
         
         // Fire 3 tracking beams with slight spread
         float spreads[] = {-0.2f, 0.f, 0.2f};
-        float offsets[] = {-30.f, 0.f, 30.f};
+        float offsets[] = {-40.f, 0.f, 40.f};
         
         for (int i = 0; i < 3; i++) {
             auto bomb = std::make_unique<Bomb>(resources, baseX + offsets[i], baseY);

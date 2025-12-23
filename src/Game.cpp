@@ -61,9 +61,9 @@ void Game::spawnTestEnemies() {
         enemies.push_back(std::make_unique<Gamma>(resources, 150.f + i * 150.f, 340.f));
     }
     
-    // Spawn bosses
-    enemies.push_back(std::make_unique<Dragon>(resources, 400, 480));
-    enemies.push_back(std::make_unique<Monster>(resources, 700, 550));
+    // Spawn bosses centered
+    enemies.push_back(std::make_unique<Dragon>(resources, 500, 480));
+    enemies.push_back(std::make_unique<Monster>(resources, 500, 300));
     
     std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
 }
