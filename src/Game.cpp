@@ -5,6 +5,8 @@
 #include "entities/enemies/Enemy.hpp"
 #include "entities/enemies/Bomb.hpp"
 #include "entities/enemies/InvaderTypes.hpp"
+#include "entities/enemies/Dragon.hpp"
+#include "entities/enemies/Monster.hpp"
 #include <iostream>
 #include <filesystem>
 
@@ -48,7 +50,7 @@ Game::~Game() {
 }
 
 void Game::spawnTestEnemies() {
-    // Spawn a row of each type
+    // Spawn invader rows
     for (int i = 0; i < 5; i++) {
         enemies.push_back(std::make_unique<Alpha>(resources, 150.f + i * 150.f, 100.f));
     }
@@ -58,6 +60,11 @@ void Game::spawnTestEnemies() {
     for (int i = 0; i < 5; i++) {
         enemies.push_back(std::make_unique<Gamma>(resources, 150.f + i * 150.f, 340.f));
     }
+    
+    // Spawn bosses
+    enemies.push_back(std::make_unique<Dragon>(resources, 400, 480));
+    enemies.push_back(std::make_unique<Monster>(resources, 700, 550));
+    
     std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
 }
 
@@ -177,6 +184,37 @@ void Game::checkCollisions() {
     
     // Check enemy bombs against player
     for (auto& enemy : enemies) {
+        // Handle Dragon's spread bombs (multiple bombs)
+        if (auto* dragon = dynamic_cast<Dragon*>(enemy.get())) {
+            for (auto* bomb : dragon->getActiveBombs()) {
+                if (bomb && !bomb->isDestroyed() && bomb->intersects(*player)) {
+                    bomb->markHit();
+                    player->damage(1);
+                    if (player->getHealth() <= 0) {
+                        state = GameState::GameOver;
+                        std::cout << "GAME OVER! Final Score: " << player->getScore() << std::endl;
+                    }
+                }
+            }
+            continue;  // Dragon handles its own bombs
+        }
+        
+        // Handle Monster's tracking bombs (multiple bombs)
+        if (auto* monster = dynamic_cast<Monster*>(enemy.get())) {
+            for (auto* bomb : monster->getActiveBombs()) {
+                if (bomb && !bomb->isDestroyed() && bomb->intersects(*player)) {
+                    bomb->markHit();
+                    player->damage(1);
+                    if (player->getHealth() <= 0) {
+                        state = GameState::GameOver;
+                        std::cout << "GAME OVER! Final Score: " << player->getScore() << std::endl;
+                    }
+                }
+            }
+            continue;  // Monster handles its own bombs
+        }
+        
+        // Handle regular single bomb (other enemies)
         auto* bomb = enemy->getActiveBomb();
         if (bomb && !bomb->isDestroyed()) {
             if (bomb->intersects(*player)) {

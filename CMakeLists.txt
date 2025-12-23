@@ -20,6 +20,8 @@ set(SOURCES
     src/entities/enemies/Enemy.cpp
     src/entities/enemies/Invader.cpp
     src/entities/enemies/InvaderTypes.cpp
+    src/entities/enemies/Dragon.cpp
+    src/entities/enemies/Monster.cpp
 )
 
 # Headers
@@ -33,6 +35,8 @@ set(HEADERS
     src/entities/enemies/Enemy.hpp
     src/entities/enemies/Invader.hpp
     src/entities/enemies/InvaderTypes.hpp
+    src/entities/enemies/Dragon.hpp
+    src/entities/enemies/Monster.hpp
 )
 
 # Create executable
