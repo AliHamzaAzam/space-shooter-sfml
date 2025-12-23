@@ -6,7 +6,7 @@ class ResourceManager;
 
 class Bullet : public Entity {
 public:
-    Bullet(ResourceManager& resources, float x, float y);
+    Bullet(ResourceManager& resources, float x, float y, const std::string& textureName = "PNG/Lasers/laserBlue01.png");
     ~Bullet() override = default;
     
     void update(float dt) override;

@@ -27,9 +27,11 @@ public:
     std::vector<std::unique_ptr<Bullet>>& getBullets() { return bullets; }
     
     // Setters
-    void addScore(int points) { score += points; }
+    void addScore(int points);
     void damage(int amount);
-    void heal(int amount);
+    void addHealth(int amount);
+    void activateFirePowerUp();  // Piercing bullets + fire rate boost
+    bool hasPiercingBullets() const { return piercingBullets; }
 
 private:
     void wrapAroundScreen();
@@ -49,6 +51,8 @@ private:
     float friction = 600.f;      // deceleration when no input
     int health = 3;
     int score = 0;
+    bool piercingBullets = false;
+    float firePowerUpTimer = 0.f;
     
     static constexpr float FIRE_COOLDOWN_MS = 200.f;
     static constexpr int MAX_HEALTH = 3;

@@ -6,6 +6,7 @@
 #include <string>
 #include <optional>
 #include "ResourceManager.hpp"
+#include "entities/powerups/AddOn.hpp"
 
 // Forward declarations
 class Entity;
@@ -39,6 +40,7 @@ private:
     
     // Game logic
     void spawnTestEnemies();
+    void spawnPowerUp();
     void checkCollisions();
     void cleanupDestroyedEntities();
 
@@ -62,6 +64,10 @@ private:
     // Enemies
     std::vector<std::unique_ptr<Enemy>> enemies;
     
-    // Other entities (power-ups, etc.)
+    // Power-ups
+    std::vector<std::unique_ptr<AddOn>> powerups;
+    float powerUpSpawnTimer = 0.f;
+    
+    // Other entities
     std::vector<std::unique_ptr<Entity>> entities;
 };

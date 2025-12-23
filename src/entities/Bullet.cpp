@@ -2,15 +2,21 @@
 #include "../ResourceManager.hpp"
 #include <iostream>
 
-Bullet::Bullet(ResourceManager& resources, float x, float y) {
+Bullet::Bullet(ResourceManager& resources, float x, float y, const std::string& textureName) {
     setPosition(x, y);
     setVelocity(0.f, -1.f);  // Move upward
     
     // Load bullet texture
     try {
-        auto& texture = resources.getTexture("PNG/Lasers/laserBlue01.png");
+        auto& texture = resources.getTexture(textureName);
         initSprite(texture);
-        sprite->setScale({0.75f, 0.75f});
+        
+        // Scale fire texture smaller
+        if (textureName == "fire.png") {
+            sprite->setScale({0.2f, 0.2f});
+        } else {
+            sprite->setScale({0.75f, 0.75f});
+        }
         sprite->setPosition(position);
     } catch (const std::exception& e) {
         std::cerr << "Failed to load bullet texture: " << e.what() << std::endl;

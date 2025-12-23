@@ -7,14 +7,21 @@
 #include "entities/enemies/InvaderTypes.hpp"
 #include "entities/enemies/Dragon.hpp"
 #include "entities/enemies/Monster.hpp"
+#include "entities/powerups/Lives.hpp"
+#include "entities/powerups/PowerUp.hpp"
+#include "entities/powerups/Fire.hpp"
+#include "entities/powerups/Danger.hpp"
 #include <iostream>
 #include <filesystem>
+#include <cstdlib>
+#include <ctime>
 
 Game::Game() 
     : window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "Space Shooter")
     , state(GameState::Playing)
     , isRunning(true)
 {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
     window.setFramerateLimit(60);
     
     // Set up resource manager with path relative to executable
@@ -54,16 +61,16 @@ void Game::spawnTestEnemies() {
     for (int i = 0; i < 5; i++) {
         enemies.push_back(std::make_unique<Alpha>(resources, 150.f + i * 150.f, 100.f));
     }
-    for (int i = 0; i < 5; i++) {
-        enemies.push_back(std::make_unique<Beta>(resources, 150.f + i * 150.f, 220.f));
-    }
-    for (int i = 0; i < 5; i++) {
-        enemies.push_back(std::make_unique<Gamma>(resources, 150.f + i * 150.f, 340.f));
-    }
+    // for (int i = 0; i < 5; i++) {
+    //     enemies.push_back(std::make_unique<Beta>(resources, 150.f + i * 150.f, 220.f));
+    // }
+    // for (int i = 0; i < 5; i++) {
+    //     enemies.push_back(std::make_unique<Gamma>(resources, 150.f + i * 150.f, 340.f));
+    // }
     
-    // Spawn bosses centered
-    enemies.push_back(std::make_unique<Dragon>(resources, 500, 480));
-    enemies.push_back(std::make_unique<Monster>(resources, 500, 300));
+    // // Spawn bosses centered
+    // enemies.push_back(std::make_unique<Dragon>(resources, 500, 480));
+    // enemies.push_back(std::make_unique<Monster>(resources, 500, 300));
     
     std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
 }
@@ -149,11 +156,47 @@ void Game::update(float dt) {
         entity->update(dt);
     }
     
+    // Update power-ups
+    for (auto& p : powerups) {
+        p->update(dt);
+    }
+    
+    // Spawn power-ups randomly
+    powerUpSpawnTimer += dt;
+    if (powerUpSpawnTimer > 5.0f) { // Every 5 seconds roughly
+        if (std::rand() % 100 < 40) { // 40% chance every 5s check? or just spawn every 5s?
+            spawnPowerUp();
+        }
+        powerUpSpawnTimer = 0.f;
+    }
+    
     // Check collisions
     checkCollisions();
     
     // Cleanup destroyed entities
     cleanupDestroyedEntities();
+}
+
+void Game::spawnPowerUp() {
+    float x = static_cast<float>(std::rand() % (WINDOW_WIDTH - 50));
+    float y = -50.f; // Start above screen
+    
+    int type = std::rand() % 4;
+    switch (type) {
+        case 0:
+            powerups.push_back(std::make_unique<Lives>(resources, x, y));
+            break;
+        case 1:
+            powerups.push_back(std::make_unique<PowerUp>(resources, x, y));
+            break;
+        case 2:
+            powerups.push_back(std::make_unique<Fire>(resources, x, y));
+            break;
+        case 3:
+            powerups.push_back(std::make_unique<Danger>(resources, x, y));
+            break;
+    }
+    std::cout << "Spawned PowerUp Type: " << type << std::endl;
 }
 
 void Game::checkCollisions() {
@@ -170,14 +213,21 @@ void Game::checkCollisions() {
             
             // Check collision
             if (bullet->intersects(*enemy)) {
-                bullet->markHit();
+                // Only mark bullet as hit if player doesn't have piercing bullets
+                if (!player->hasPiercingBullets()) {
+                    bullet->markHit();
+                }
                 enemy->takeDamage(1);
                 
                 if (enemy->isDead()) {
                     player->addScore(enemy->getScoreValue());
                     std::cout << "Score: " << player->getScore() << std::endl;
                 }
-                break;  // Bullet can only hit one enemy
+                
+                // If piercing, continue hitting enemies; otherwise break
+                if (!player->hasPiercingBullets()) {
+                    break;  // Bullet can only hit one enemy
+                }
             }
         }
     }
@@ -227,6 +277,14 @@ void Game::checkCollisions() {
             }
         }
     }
+    
+    // Check power-ups vs player
+    for (auto& p : powerups) {
+        if (!p->isDestroyed() && p->intersects(*player)) {
+            p->applyEffect(*player);
+            p->destroy();
+        }
+    }
 }
 
 void Game::cleanupDestroyedEntities() {
@@ -235,6 +293,13 @@ void Game::cleanupDestroyedEntities() {
         std::remove_if(enemies.begin(), enemies.end(),
             [](const auto& e) { return e->isDestroyed(); }),
         enemies.end()
+    );
+    
+    // Remove destroyed powerups
+    powerups.erase(
+        std::remove_if(powerups.begin(), powerups.end(),
+            [](const auto& p) { return p->isDestroyed(); }),
+        powerups.end()
     );
     
     // Remove other destroyed entities
@@ -255,6 +320,11 @@ void Game::render() {
     // Draw enemies
     for (const auto& enemy : enemies) {
         enemy->draw(window);
+    }
+    
+    // Draw power-ups
+    for (const auto& p : powerups) {
+        p->draw(window);
     }
     
     // Draw player

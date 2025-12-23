@@ -9,6 +9,9 @@ A 2D space shooter game built with **SFML 3.x** and modern C++17.
 - Boss battles
 - Score tracking and leaderboard
 
+## About this Project
+This is a comprehensive modernization and rebuild of my original OOP course project from 2023 (which was never released). The goal of this 2025 remaster is to apply professional software engineering practices, utilize modern C++17 features, and implement a robust architecture using SFML 3.x.
+
 ## Building
 
 ### Requirements

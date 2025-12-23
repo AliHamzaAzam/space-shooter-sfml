@@ -34,6 +34,15 @@ bool isKeyActive(const std::unordered_set<sf::Keyboard::Key>& keys, sf::Keyboard
 void Spaceship::update(float dt) {
     if (health <= 0) return;
     
+    // Handle fire power-up timer
+    if (piercingBullets && firePowerUpTimer > 0.f) {
+        firePowerUpTimer -= dt;
+        if (firePowerUpTimer <= 0.f) {
+            piercingBullets = false;
+            std::cout << "Fire Power-Up expired!" << std::endl;
+        }
+    }
+    
     float dx = 0.f, dy = 0.f;
     
     // Check pressed keys for movement
@@ -136,12 +145,17 @@ void Spaceship::update(float dt) {
 
 void Spaceship::fire() {
     if (fireCooldown.getElapsedTime().asMilliseconds() >= FIRE_COOLDOWN_MS && health > 0) {
-        // Create two bullets (left and right of ship)
-        auto bullet1 = std::make_unique<Bullet>(resources, position.x + 30.f, position.y - 10.f);
-        auto bullet2 = std::make_unique<Bullet>(resources, position.x + 62.f, position.y - 10.f);
-        
-        bullets.push_back(std::move(bullet1));
-        bullets.push_back(std::move(bullet2));
+        if (piercingBullets) {
+            // Fire single centered fire bullet
+            auto bullet = std::make_unique<Bullet>(resources, position.x - 15.f, position.y - 180.f, "fire.png");
+            bullets.push_back(std::move(bullet));
+        } else {
+            // Create two bullets (left and right of ship)
+            auto bullet1 = std::make_unique<Bullet>(resources, position.x + 30.f, position.y - 10.f);
+            auto bullet2 = std::make_unique<Bullet>(resources, position.x + 62.f, position.y - 10.f);
+            bullets.push_back(std::move(bullet1));
+            bullets.push_back(std::move(bullet2));
+        }
         
         fireCooldown.restart();
     }
@@ -196,9 +210,22 @@ void Spaceship::damage(int amount) {
     std::cout << "Health: " << health << std::endl;
 }
 
-void Spaceship::heal(int amount) {
+void Spaceship::addHealth(int amount) {
     health += amount;
-    if (health > MAX_HEALTH) health = MAX_HEALTH;
+    // Allow going above MAX_HEALTH for powerups
+    if (health > 10) health = 10;
+    std::cout << "Health Up! HP: " << health << std::endl;
+}
+
+void Spaceship::activateFirePowerUp() {
+    piercingBullets = true;
+    firePowerUpTimer = 5.0f;  // 5 second duration
+    std::cout << "Fire Power-Up! Piercing bullets for 5 seconds!" << std::endl;
+}
+
+void Spaceship::addScore(int points) { 
+    score += points; 
+    std::cout << "Score Up! +" << points << " Total: " << score << std::endl;
 }
 
 Spaceship::~Spaceship() {
