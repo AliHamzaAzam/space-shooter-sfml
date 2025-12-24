@@ -6,6 +6,7 @@
 #include <string>
 #include <optional>
 #include "ResourceManager.hpp"
+#include "LevelManager.hpp"
 #include "entities/powerups/AddOn.hpp"
 
 // Forward declarations
@@ -17,7 +18,8 @@ enum class GameState {
     Menu,
     Playing,
     Paused,
-    GameOver
+    GameOver,
+    Victory
 };
 
 class Game {
@@ -39,10 +41,10 @@ private:
     void handleKeyRelease(sf::Keyboard::Key key);
     
     // Game logic
-    void spawnTestEnemies();
     void spawnPowerUp();
     void checkCollisions();
     void cleanupDestroyedEntities();
+    void checkLevelComplete();
 
 private:
     static constexpr unsigned int WINDOW_WIDTH = 1000;
@@ -51,6 +53,7 @@ private:
     
     // Resources must be declared BEFORE sprites that use them
     ResourceManager resources;
+    LevelManager levelManager;
     
     sf::RenderWindow window;
     std::optional<sf::Sprite> background;

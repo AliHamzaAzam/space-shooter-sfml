@@ -20,6 +20,7 @@ Game::Game()
     : window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "Space Shooter")
     , state(GameState::Playing)
     , isRunning(true)
+    , levelManager(resources)
 {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     window.setFramerateLimit(60);
@@ -40,8 +41,8 @@ Game::Game()
     // Create player
     player = std::make_unique<Spaceship>(resources);
     
-    // Spawn test enemies
-    spawnTestEnemies();
+    // Spawn first level
+    levelManager.spawnLevel(enemies);
     
     std::cout << "Game initialized successfully!" << std::endl;
 }
@@ -56,24 +57,7 @@ Game::~Game() {
     std::cout << "Game shutting down..." << std::endl;
 }
 
-void Game::spawnTestEnemies() {
-    // Spawn invader rows
-    for (int i = 0; i < 5; i++) {
-        enemies.push_back(std::make_unique<Alpha>(resources, 150.f + i * 150.f, 100.f));
-    }
-    // for (int i = 0; i < 5; i++) {
-    //     enemies.push_back(std::make_unique<Beta>(resources, 150.f + i * 150.f, 220.f));
-    // }
-    // for (int i = 0; i < 5; i++) {
-    //     enemies.push_back(std::make_unique<Gamma>(resources, 150.f + i * 150.f, 340.f));
-    // }
-    
-    // // Spawn bosses centered
-    // enemies.push_back(std::make_unique<Dragon>(resources, 500, 480));
-    // enemies.push_back(std::make_unique<Monster>(resources, 500, 300));
-    
-    std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
-}
+
 
 void Game::run() {
     sf::Clock clock;
@@ -172,6 +156,9 @@ void Game::update(float dt) {
     
     // Check collisions
     checkCollisions();
+    
+    // Check level completion
+    checkLevelComplete();
     
     // Cleanup destroyed entities
     cleanupDestroyedEntities();
@@ -308,6 +295,24 @@ void Game::cleanupDestroyedEntities() {
             [](const auto& e) { return e->isDestroyed(); }),
         entities.end()
     );
+}
+
+void Game::checkLevelComplete() {
+    if (state != GameState::Playing) return;
+    
+    if (levelManager.isLevelComplete(enemies)) {
+        levelManager.nextLevel();
+        
+        if (levelManager.isVictory()) {
+            std::cout << "=== CONGRATULATIONS! YOU WIN! ===" << std::endl;
+            std::cout << "Final Score: " << player->getScore() << std::endl;
+            // Loop back to level 1
+            levelManager.nextLevel();
+        }
+        
+        // Spawn next level enemies
+        levelManager.spawnLevel(enemies);
+    }
 }
 
 void Game::render() {

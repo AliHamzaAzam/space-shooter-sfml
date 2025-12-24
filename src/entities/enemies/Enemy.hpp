@@ -58,7 +58,7 @@ protected:
     // Movement oscillation
     float startX = 0.f;
     float oscillateTimer = 0.f;
-    float oscillateRange = 100.f;  // How far to move left/right
+    float oscillateRange = 50.f;  // How far to move left/right
     
     static constexpr float SCREEN_WIDTH = 1000.f;
     static constexpr float SCREEN_HEIGHT = 1000.f;

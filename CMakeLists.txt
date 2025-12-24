@@ -13,6 +13,7 @@ set(SOURCES
     src/main.cpp
     src/Game.cpp
     src/ResourceManager.cpp
+    src/LevelManager.cpp
     src/entities/Entity.cpp
     src/entities/Spaceship.cpp
     src/entities/Bullet.cpp
@@ -28,6 +29,7 @@ set(SOURCES
 set(HEADERS
     src/Game.hpp
     src/ResourceManager.hpp
+    src/LevelManager.hpp
     src/entities/Entity.hpp
     src/entities/Spaceship.hpp
     src/entities/Bullet.hpp
