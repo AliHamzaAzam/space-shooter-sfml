@@ -95,7 +95,7 @@ void Game::run() {
         
         // Fixed timestep update
         while (accumulator >= TIME_PER_FRAME) {
-            processMouseInput();  // Mouse control mode
+            processMouseInput();  
             update(TIME_PER_FRAME);
             accumulator -= TIME_PER_FRAME;
         }
@@ -186,6 +186,8 @@ void Game::update(float dt) {
         }
     }
     
+    // Update explosions
+    updateExplosions(dt);    
     // Update enemies (pass player position for aimed bombs)
     for (auto& enemy : enemies) {
         if (player) {
@@ -267,6 +269,7 @@ void Game::checkCollisions() {
                 
                 if (enemy->isDead()) {
                     player->addScore(enemy->getScoreValue());
+                    spawnExplosion(enemy->getPosition().x, enemy->getPosition().y);
                     std::cout << "Score: " << player->getScore() << std::endl;
                 }
                 
@@ -401,6 +404,11 @@ void Game::render() {
         entity->draw(window);
     }
     
+    // Draw explosions
+    for (const auto& exp : explosions) {
+        if (exp.sprite) window.draw(*exp.sprite);
+    }
+    
     // Draw HUD
     renderHUD();
     
@@ -489,4 +497,45 @@ void Game::renderHUD() {
     window.draw(healthBar);
     window.draw(scoreText);
     window.draw(levelText);
+}
+
+void Game::spawnExplosion(float x, float y) {
+    try {
+        auto& tex = resources.getTexture("explosion.png");
+        Explosion exp;
+        exp.sprite.emplace(tex);
+        exp.sprite->setPosition({x, y});
+        exp.sprite->setScale({0.5f, 0.5f});  // Smaller scale for 256px frames
+        exp.timer = Explosion::FRAME_COUNT * Explosion::FRAME_DURATION;  // Total duration
+        exp.frame = 0;
+        // Set first frame
+        exp.sprite->setTextureRect(sf::IntRect({0, 0}, {Explosion::FRAME_SIZE, Explosion::FRAME_SIZE}));
+        explosions.push_back(std::move(exp));
+    } catch (...) {}
+}
+
+void Game::updateExplosions(float dt) {
+    for (auto& exp : explosions) {
+        exp.timer -= dt;
+        
+        if (exp.sprite) {
+            // Calculate current frame based on elapsed time
+            float elapsed = (Explosion::FRAME_COUNT * Explosion::FRAME_DURATION) - exp.timer;
+            int frame = static_cast<int>(elapsed / Explosion::FRAME_DURATION);
+            frame = std::min(frame, Explosion::FRAME_COUNT - 1);
+            
+            if (frame != exp.frame) {
+                exp.frame = frame;
+                exp.sprite->setTextureRect(sf::IntRect(
+                    {frame * Explosion::FRAME_SIZE, 0},
+                    {Explosion::FRAME_SIZE, Explosion::FRAME_SIZE}
+                ));
+            }
+        }
+    }
+    // Remove finished explosions
+    explosions.erase(
+        std::remove_if(explosions.begin(), explosions.end(),
+            [](const Explosion& e) { return e.timer <= 0; }),
+        explosions.end());
 }

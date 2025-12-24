@@ -40,7 +40,7 @@ private:
     
     void handleKeyPress(sf::Keyboard::Key key);
     void handleKeyRelease(sf::Keyboard::Key key);
-    void processMouseInput();  // Mouse control mode
+    void processMouseInput();  
     
     // Game logic
     void spawnPowerUp();
@@ -51,6 +51,8 @@ private:
     void showMainMenu();
     void handleGameOver();
     void renderHUD();
+    void spawnExplosion(float x, float y);
+    void updateExplosions(float dt);
 
 private:
     static constexpr unsigned int WINDOW_WIDTH = 1000;
@@ -83,10 +85,14 @@ private:
     bool useMouseControl = false;  // Mouse vs keyboard
     sf::Font hudFont;
     
-    // Explosions
+    // Explosions (4-frame animation, 552x138 sheet)
     struct Explosion {
-        sf::Sprite sprite;
-        float timer;
+        std::optional<sf::Sprite> sprite;
+        float timer = 0.f;
+        int frame = 0;
+        static constexpr int FRAME_COUNT = 4;
+        static constexpr int FRAME_SIZE = 138;  
+        static constexpr float FRAME_DURATION = 0.1f;
     };
     std::vector<Explosion> explosions;
     
