@@ -1,54 +1,65 @@
 # Space Shooter
 
-A 2D space shooter game built with **SFML 3.x** and modern C++17.
+A classic arcade-style space shooter game built with modern C++17 and SFML 3.x.
 
-## Features (Planned)
-- Player spaceship with 8-directional movement
-- Multiple enemy types with formations
-- Power-ups and collectibles
-- Boss battles
-- Score tracking and leaderboard
+![Gameplay](screenshots/gameplay.png)
 
-## About this Project
-This is a comprehensive modernization and rebuild of my original OOP course project from 2023 (which was never released). The goal of this 2025 remaster is to apply professional software engineering practices, utilize modern C++17 features, and implement a robust architecture using SFML 3.x.
+## Features
+
+- **Level Progression** - 3 levels with increasing difficulty + 2 boss battles
+- **Multiple Enemy Types** - Alpha, Beta, Gamma invaders with unique attack patterns
+- **Boss Battles** - Dragon (spread shots) and Monster (tracking beams)
+- **Power-ups** - Health, Fire boost, Power-up, and Danger pickups
+- **Ship Customization** - 3 ship types to choose from
+- **Controls** - Keyboard (WASD/Arrows) or Mouse mode
+- **Save System** - Complete game state saved to continue later
+- **Leaderboard** - Top 10 scores saved locally
+
+## Screenshots
+
+| Main Menu | Options | Pause |
+|:-:|:-:|:-:|
+| ![Main Menu](screenshots/main_menu.png) | ![Options](screenshots/options.png) | ![Pause](screenshots/pause.png) |
+
+## Controls
+
+| Action | Keyboard | Mouse Mode |
+|--------|----------|------------|
+| Move | WASD / Arrow Keys | Mouse position |
+| Fire | Space | Left Click |
+| Pause | Escape | Escape |
 
 ## Building
 
 ### Requirements
+- C++17 compiler
 - CMake 3.16+
-- SFML 3.0+
-- C++17 compatible compiler
+- SFML 3.x
 
-### Build Instructions
+### Build Steps
+
 ```bash
 mkdir build && cd build
 cmake ..
-cmake --build .
-```
-
-### Run
-```bash
-./bin/SpaceShooter
+make -j4
+cd bin && ./SpaceShooter
 ```
 
 ## Project Structure
-```
-new_project/
-├── assets/           # Game resources
-│   ├── images/       # Sprites and textures
-│   ├── fonts/        # Fonts
-│   └── sounds/       # Audio files
-├── src/              # Source code
-│   ├── entities/     # Game entities
-│   ├── powerups/     # Power-up classes
-│   └── ui/           # Menu and UI
-└── CMakeLists.txt
-```
 
-## Controls
-- **Arrow Keys**: Move spaceship
-- **Space**: Fire
-- **Escape**: Pause
+```
+src/
+├── Game.cpp/hpp          # Main game loop
+├── Menu.cpp/hpp          # UI screens
+├── LevelManager.cpp/hpp  # Level progression
+├── ResourceManager.hpp   # Asset loading
+└── entities/
+    ├── Spaceship.cpp/hpp # Player
+    ├── Bullet.cpp/hpp    # Projectiles
+    ├── enemies/          # Enemy types
+    └── powerups/         # Power-up types
+```
 
 ## License
-MIT
+
+MIT License
