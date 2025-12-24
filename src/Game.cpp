@@ -35,6 +35,13 @@ Game::Game()
         std::cerr << "Warning: " << e.what() << std::endl;
     }
     
+    // Load HUD font
+    try {
+        hudFont = resources.getFont("Lovelo-LineBold.ttf");
+    } catch (const std::exception& e) {
+        std::cerr << "Warning: HUD font not loaded" << std::endl;
+    }
+    
     std::cout << "Game initialized successfully!" << std::endl;
 }
 
@@ -366,6 +373,9 @@ void Game::render() {
         entity->draw(window);
     }
     
+    // Draw HUD
+    renderHUD();
+    
     window.display();
 }
 
@@ -383,6 +393,9 @@ void Game::showMainMenu() {
         case MenuResult::Help:
             menu.showHelp(window);
             break;
+        case MenuResult::Options:
+            selectedShipType = menu.showOptions(window, selectedShipType);
+            break;
         case MenuResult::Quit:
             isRunning = false;
             break;
@@ -392,8 +405,8 @@ void Game::showMainMenu() {
 }
 
 void Game::restartGame() {
-    // Reset player
-    player = std::make_unique<Spaceship>(resources);
+    // Reset player with selected ship type
+    player = std::make_unique<Spaceship>(resources, selectedShipType);
     
     // Reset level manager to level 1 - clear enemies directly
     enemies.clear();
@@ -417,4 +430,32 @@ void Game::handleGameOver() {
     if (result == MenuResult::Return || result == MenuResult::Quit) {
         state = GameState::Menu;
     }
+}
+
+void Game::renderHUD() {
+    if (!player) return;
+    
+    // Health bar background
+    sf::RectangleShape healthBg({200.f, 20.f});
+    healthBg.setPosition({20.f, 20.f});
+    healthBg.setFillColor(sf::Color(60, 60, 60));
+    
+    // Health bar (green to red based on health)
+    float healthPercent = static_cast<float>(player->getHealth()) / 3.f;
+    sf::RectangleShape healthBar({200.f * healthPercent, 20.f});
+    healthBar.setPosition({20.f, 20.f});
+    healthBar.setFillColor(healthPercent > 0.5f ? sf::Color::Green : sf::Color::Red);
+    
+    // Score text
+    sf::Text scoreText(hudFont, "Score: " + std::to_string(player->getScore()), 24);
+    scoreText.setPosition({WINDOW_WIDTH - 200.f, 20.f});
+    
+    // Level text
+    sf::Text levelText(hudFont, "Level " + std::to_string(levelManager.getLevelNumber()), 24);
+    levelText.setPosition({WINDOW_WIDTH / 2.f - 50.f, 20.f});
+    
+    window.draw(healthBg);
+    window.draw(healthBar);
+    window.draw(scoreText);
+    window.draw(levelText);
 }

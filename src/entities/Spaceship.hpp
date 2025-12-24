@@ -11,7 +11,7 @@ class ResourceManager;
 
 class Spaceship : public Entity {
 public:
-    Spaceship(ResourceManager& resources);
+    Spaceship(ResourceManager& resources, int shipType = 1);
     ~Spaceship() override;
     
     void update(float dt) override;

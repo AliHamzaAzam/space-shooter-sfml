@@ -3,13 +3,24 @@
 #include "../ResourceManager.hpp"
 #include <iostream>
 
-Spaceship::Spaceship(ResourceManager& res) : resources(res) {
+Spaceship::Spaceship(ResourceManager& res, int shipType) : resources(res) {
+    // Ship textures 
+    std::string textureName;
+    switch (shipType) {
+        case 1: textureName = "playerShip1_red.png"; break;
+        case 2: textureName = "playerShip2_green.png"; break;
+        case 3: textureName = "playerShip3_orange.png"; break;
+        default: textureName = "playerShip1_red.png"; break;
+    }
+    
     // Load texture and create sprite
     try {
-        auto& texture = resources.getTexture("playerShip1_red.png");
+        auto& texture = resources.getTexture(textureName);
         initSprite(texture);
-        // The sprite sheet has frames of 131x131 pixels - show only first frame
-        sprite->setTextureRect(sf::IntRect({0, 0}, {131, 131}));
+        auto texSize = texture.getSize();
+        if (texSize.x > 150) {  // Sprite sheet - use first frame
+            sprite->setTextureRect(sf::IntRect({0, 0}, {131, 131}));
+        }
         sprite->setScale({0.75f, 0.75f});
     } catch (const std::exception& e) {
         std::cerr << "Failed to load spaceship texture: " << e.what() << std::endl;

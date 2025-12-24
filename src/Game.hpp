@@ -49,6 +49,7 @@ private:
     void restartGame();
     void showMainMenu();
     void handleGameOver();
+    void renderHUD();
 
 private:
     static constexpr unsigned int WINDOW_WIDTH = 1000;
@@ -75,6 +76,10 @@ private:
     // Power-ups
     std::vector<std::unique_ptr<AddOn>> powerups;
     float powerUpSpawnTimer = 0.f;
+    
+    // Settings
+    int selectedShipType = 1;  // 1=red, 2=green, 3=orange
+    sf::Font hudFont;
     
     // Other entities
     std::vector<std::unique_ptr<Entity>> entities;

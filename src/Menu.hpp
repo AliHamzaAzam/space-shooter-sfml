@@ -14,6 +14,7 @@ enum class MenuResult {
     Resume,
     Restart,
     Leaderboard,
+    Options,
     Help,
     Quit,
     Return
@@ -29,6 +30,7 @@ public:
     MenuResult showGameOver(sf::RenderWindow& window, int score, std::string& outPlayerName);
     MenuResult showLeaderboard(sf::RenderWindow& window);
     MenuResult showHelp(sf::RenderWindow& window);
+    int showOptions(sf::RenderWindow& window, int currentShip);  // Returns ship type 1-3
     
     // Score file management
     void saveScore(const std::string& name, int score);

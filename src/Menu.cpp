@@ -43,14 +43,16 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
     sf::Text title(font, "Space Shooter", 70);
     sf::Text playBtn(font, "Play", 36);
     sf::Text scoreBtn(font, "Leaderboard", 36);
+    sf::Text optionsBtn(font, "Options", 36);
     sf::Text helpBtn(font, "Help", 36);
     sf::Text quitBtn(font, "Quit", 36);
     
     centerText(title, 125);
-    centerText(playBtn, 320);
-    centerText(scoreBtn, 400);
-    centerText(helpBtn, 480);
-    centerText(quitBtn, 560);
+    centerText(playBtn, 300);
+    centerText(scoreBtn, 370);
+    centerText(optionsBtn, 440);
+    centerText(helpBtn, 510);
+    centerText(quitBtn, 580);
     
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
@@ -64,6 +66,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
                     auto mousePos = sf::Mouse::getPosition(window);
                     if (isMouseOver(playBtn, mousePos)) return MenuResult::Play;
                     if (isMouseOver(scoreBtn, mousePos)) return MenuResult::Leaderboard;
+                    if (isMouseOver(optionsBtn, mousePos)) return MenuResult::Options;
                     if (isMouseOver(helpBtn, mousePos)) return MenuResult::Help;
                     if (isMouseOver(quitBtn, mousePos)) return MenuResult::Quit;
                 }
@@ -74,6 +77,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
         auto mousePos = sf::Mouse::getPosition(window);
         playBtn.setFillColor(isMouseOver(playBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         scoreBtn.setFillColor(isMouseOver(scoreBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
+        optionsBtn.setFillColor(isMouseOver(optionsBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         helpBtn.setFillColor(isMouseOver(helpBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         quitBtn.setFillColor(isMouseOver(quitBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         
@@ -82,6 +86,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
         window.draw(title);
         window.draw(playBtn);
         window.draw(scoreBtn);
+        window.draw(optionsBtn);
         window.draw(helpBtn);
         window.draw(quitBtn);
         window.display();
@@ -337,4 +342,102 @@ void Menu::saveScore(const std::string& name, int score) {
         }
         file.close();
     }
+}
+
+int Menu::showOptions(sf::RenderWindow& window, int currentShip) {
+    sf::Text title(font, "Options", 60);
+    sf::Text shipLabel(font, "Select Ship:", 36);
+    sf::Text returnBtn(font, "Return", 36);
+    
+    centerText(title, 100);
+    centerText(shipLabel, 220);
+    centerText(returnBtn, 700);
+    
+    int selectedShip = currentShip;
+    
+    // Load ship icons - center them evenly across screen
+    std::optional<sf::Sprite> ship1, ship2, ship3;
+    float shipY = 320.f;
+    float shipSpacing = 250.f;
+    float startX = (SCREEN_WIDTH - 2 * shipSpacing) / 2.f;
+    
+    try {
+        auto& tex1 = resources.getTexture("IconShip1_red.png");
+        ship1.emplace(tex1);
+        auto bounds = ship1->getGlobalBounds();
+        ship1->setPosition({startX - bounds.size.x/2.f, shipY});
+    } catch (...) {}
+    
+    try {
+        auto& tex2 = resources.getTexture("IconShip2_green.png");
+        ship2.emplace(tex2);
+        auto bounds = ship2->getGlobalBounds();
+        ship2->setPosition({startX + shipSpacing - bounds.size.x/2.f, shipY});
+    } catch (...) {}
+    
+    try {
+        auto& tex3 = resources.getTexture("IconShip3_orange.png");
+        ship3.emplace(tex3);
+        auto bounds = ship3->getGlobalBounds();
+        ship3->setPosition({startX + 2*shipSpacing - bounds.size.x/2.f, shipY});
+    } catch (...) {}
+    
+    // Selection indicator - will be sized dynamically
+    sf::RectangleShape selector;
+    selector.setFillColor(sf::Color::Transparent);
+    selector.setOutlineColor(sf::Color::Yellow);
+    selector.setOutlineThickness(3.f);
+    
+    while (window.isOpen()) {
+        while (auto event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return selectedShip;
+            }
+            
+            if (auto* mouseBtn = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == sf::Mouse::Button::Left) {
+                    auto mousePos = sf::Mouse::getPosition(window);
+                    
+                    if (ship1 && ship1->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+                        selectedShip = 1;
+                    }
+                    if (ship2 && ship2->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+                        selectedShip = 2;
+                    }
+                    if (ship3 && ship3->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+                        selectedShip = 3;
+                    }
+                    
+                    if (isMouseOver(returnBtn, mousePos)) {
+                        return selectedShip;
+                    }
+                }
+            }
+        }
+        
+        // Update selector position and size based on selected ship
+        sf::FloatRect bounds;
+        if (selectedShip == 1 && ship1) bounds = ship1->getGlobalBounds();
+        else if (selectedShip == 2 && ship2) bounds = ship2->getGlobalBounds();
+        else if (selectedShip == 3 && ship3) bounds = ship3->getGlobalBounds();
+        
+        selector.setSize({bounds.size.x + 10.f, bounds.size.y + 10.f});
+        selector.setPosition({bounds.position.x - 5.f, bounds.position.y - 5.f});
+        
+        auto mousePos = sf::Mouse::getPosition(window);
+        returnBtn.setFillColor(isMouseOver(returnBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
+        
+        window.clear();
+        if (background) window.draw(*background);
+        window.draw(title);
+        window.draw(shipLabel);
+        if (ship1) window.draw(*ship1);
+        if (ship2) window.draw(*ship2);
+        if (ship3) window.draw(*ship3);
+        window.draw(selector);
+        window.draw(returnBtn);
+        window.display();
+    }
+    return selectedShip;
 }
