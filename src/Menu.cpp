@@ -39,22 +39,26 @@ bool Menu::isMouseOver(const sf::Text& text, const sf::Vector2i& mousePos) const
     return bounds.contains(sf::Vector2f(mousePos));
 }
 
-MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
+MenuResult Menu::showMainMenu(sf::RenderWindow& window, bool hasSaveFile) {
     sf::Text title(font, "Space Shooter", 70);
-    sf::Text playBtn(font, "Play", 36);
+    sf::Text continueBtn(font, "Continue", 36);
+    sf::Text playBtn(font, "New Game", 36);
     sf::Text scoreBtn(font, "Leaderboard", 36);
     sf::Text optionsBtn(font, "Options", 36);
     sf::Text helpBtn(font, "Help", 36);
     sf::Text aboutBtn(font, "About", 36);
     sf::Text quitBtn(font, "Quit", 36);
     
+    // Position buttons based on whether Continue is shown
+    float yOffset = hasSaveFile ? 0.f : 60.f;
     centerText(title, 125);
-    centerText(playBtn, 280);
-    centerText(scoreBtn, 345);
-    centerText(optionsBtn, 410);
-    centerText(helpBtn, 475);
-    centerText(aboutBtn, 540);
-    centerText(quitBtn, 605);
+    centerText(continueBtn, 260);
+    centerText(playBtn, 260 + (hasSaveFile ? 60.f : 0.f));
+    centerText(scoreBtn, 320 + (hasSaveFile ? 60.f : 0.f));
+    centerText(optionsBtn, 380 + (hasSaveFile ? 60.f : 0.f));
+    centerText(helpBtn, 440 + (hasSaveFile ? 60.f : 0.f));
+    centerText(aboutBtn, 500 + (hasSaveFile ? 60.f : 0.f));
+    centerText(quitBtn, 560 + (hasSaveFile ? 60.f : 0.f));
     
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
@@ -66,6 +70,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
             if (auto* mouseBtn = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (mouseBtn->button == sf::Mouse::Button::Left) {
                     auto mousePos = sf::Mouse::getPosition(window);
+                    if (hasSaveFile && isMouseOver(continueBtn, mousePos)) return MenuResult::Continue;
                     if (isMouseOver(playBtn, mousePos)) return MenuResult::Play;
                     if (isMouseOver(scoreBtn, mousePos)) return MenuResult::Leaderboard;
                     if (isMouseOver(optionsBtn, mousePos)) return MenuResult::Options;
@@ -78,6 +83,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
         
         // Hover effects
         auto mousePos = sf::Mouse::getPosition(window);
+        continueBtn.setFillColor(isMouseOver(continueBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         playBtn.setFillColor(isMouseOver(playBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         scoreBtn.setFillColor(isMouseOver(scoreBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         optionsBtn.setFillColor(isMouseOver(optionsBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
@@ -88,6 +94,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
         window.clear();
         if (background) window.draw(*background);
         window.draw(title);
+        if (hasSaveFile) window.draw(continueBtn);
         window.draw(playBtn);
         window.draw(scoreBtn);
         window.draw(optionsBtn);

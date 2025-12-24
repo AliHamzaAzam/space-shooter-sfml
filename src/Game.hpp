@@ -53,6 +53,8 @@ private:
     void renderHUD();
     void spawnExplosion(float x, float y);
     void updateExplosions(float dt);
+    void saveGame();
+    bool loadGame(); 
 
 private:
     static constexpr unsigned int WINDOW_WIDTH = 1000;

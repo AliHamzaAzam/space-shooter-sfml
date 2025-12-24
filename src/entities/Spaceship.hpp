@@ -32,6 +32,8 @@ public:
     void addHealth(int amount);
     void activateFirePowerUp();  // Piercing bullets + fire rate boost
     bool hasPiercingBullets() const { return piercingBullets; }
+    void setScore(int s) { score = s; }
+    void setHealth(int h) { health = std::min(h, MAX_HEALTH); }
 
 private:
     void wrapAroundScreen();

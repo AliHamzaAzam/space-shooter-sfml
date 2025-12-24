@@ -11,6 +11,7 @@ class ResourceManager;
 enum class MenuResult {
     None,
     Play,
+    Continue,
     Resume,
     Restart,
     Leaderboard,
@@ -26,7 +27,7 @@ public:
     Menu(ResourceManager& resources);
     
     // Show different menu screens - returns when user makes selection
-    MenuResult showMainMenu(sf::RenderWindow& window);
+    MenuResult showMainMenu(sf::RenderWindow& window, bool hasSaveFile);
     MenuResult showPauseMenu(sf::RenderWindow& window);
     MenuResult showGameOver(sf::RenderWindow& window, int score, std::string& outPlayerName);
     MenuResult showLeaderboard(sf::RenderWindow& window);

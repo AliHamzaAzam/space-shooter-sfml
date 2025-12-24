@@ -13,6 +13,7 @@
 #include "entities/powerups/Danger.hpp"
 #include <iostream>
 #include <filesystem>
+#include <fstream>
 #include <cstdlib>
 #include <ctime>
 
@@ -76,6 +77,7 @@ void Game::run() {
             } else if (result == MenuResult::Restart) {
                 restartGame();
             } else if (result == MenuResult::Return || result == MenuResult::Quit) {
+                saveGame();  // Save progress when exiting to menu
                 state = GameState::Menu;
             }
             clock.restart();
@@ -416,10 +418,19 @@ void Game::render() {
 }
 
 void Game::showMainMenu() {
-    auto result = menu.showMainMenu(window);
+    // Check if save file exists
+    bool hasSave = std::filesystem::exists(resources.getBasePath() + "/savegame.bin");
+    auto result = menu.showMainMenu(window, hasSave);
     
     switch (result) {
+        case MenuResult::Continue:
+            if (loadGame()) {
+                state = GameState::Playing;
+            }
+            break;
         case MenuResult::Play:
+            // Delete old save when starting new game
+            std::filesystem::remove(resources.getBasePath() + "/savegame.bin");
             restartGame();
             break;
         case MenuResult::Leaderboard: {
@@ -538,4 +549,120 @@ void Game::updateExplosions(float dt) {
         std::remove_if(explosions.begin(), explosions.end(),
             [](const Explosion& e) { return e.timer <= 0; }),
         explosions.end());
+}
+
+void Game::saveGame() {
+    if (!player) return;
+    
+    std::ofstream file(resources.getBasePath() + "/savegame.bin", std::ios::binary);
+    if (!file.is_open()) return;
+    
+    // Header: player state
+    int level = levelManager.getLevelNumber();
+    int score = player->getScore();
+    int health = player->getHealth();
+    float playerX = player->getPosition().x;
+    float playerY = player->getPosition().y;
+    int mouseCtrl = useMouseControl ? 1 : 0;
+    
+    file.write(reinterpret_cast<const char*>(&level), sizeof(level));
+    file.write(reinterpret_cast<const char*>(&score), sizeof(score));
+    file.write(reinterpret_cast<const char*>(&health), sizeof(health));
+    file.write(reinterpret_cast<const char*>(&selectedShipType), sizeof(selectedShipType));
+    file.write(reinterpret_cast<const char*>(&mouseCtrl), sizeof(mouseCtrl));
+    file.write(reinterpret_cast<const char*>(&playerX), sizeof(playerX));
+    file.write(reinterpret_cast<const char*>(&playerY), sizeof(playerY));
+    
+    // Enemy count
+    int enemyCount = static_cast<int>(enemies.size());
+    file.write(reinterpret_cast<const char*>(&enemyCount), sizeof(enemyCount));
+    
+    // Each enemy: type, x, y, health
+    for (const auto& enemy : enemies) {
+        char type = enemy->getType();
+        float x = enemy->getPosition().x;
+        float y = enemy->getPosition().y;
+        int hp = enemy->getHealth();
+        
+        file.write(&type, sizeof(type));
+        file.write(reinterpret_cast<const char*>(&x), sizeof(x));
+        file.write(reinterpret_cast<const char*>(&y), sizeof(y));
+        file.write(reinterpret_cast<const char*>(&hp), sizeof(hp));
+    }
+    
+    file.close();
+    std::cout << "Game saved! (" << enemyCount << " enemies)" << std::endl;
+}
+
+bool Game::loadGame() {
+    std::ifstream file(resources.getBasePath() + "/savegame.bin", std::ios::binary);
+    if (!file.is_open()) return false;
+    
+    // Read header
+    int level, score, health, shipType, mouseCtrl;
+    float playerX, playerY;
+    
+    file.read(reinterpret_cast<char*>(&level), sizeof(level));
+    file.read(reinterpret_cast<char*>(&score), sizeof(score));
+    file.read(reinterpret_cast<char*>(&health), sizeof(health));
+    file.read(reinterpret_cast<char*>(&shipType), sizeof(shipType));
+    file.read(reinterpret_cast<char*>(&mouseCtrl), sizeof(mouseCtrl));
+    file.read(reinterpret_cast<char*>(&playerX), sizeof(playerX));
+    file.read(reinterpret_cast<char*>(&playerY), sizeof(playerY));
+    
+    // Apply player state
+    selectedShipType = shipType;
+    useMouseControl = (mouseCtrl != 0);
+    player = std::make_unique<Spaceship>(resources, selectedShipType);
+    player->setScore(score);
+    player->setHealth(health);
+    player->setPosition(playerX, playerY);
+    
+    // Set level state
+    levelManager.reset();
+    for (int i = 1; i < level; i++) {
+        levelManager.advanceLevel();
+    }
+    
+    // Read enemies
+    int enemyCount;
+    file.read(reinterpret_cast<char*>(&enemyCount), sizeof(enemyCount));
+    
+    enemies.clear();
+    for (int i = 0; i < enemyCount; i++) {
+        char type;
+        float x, y;
+        int hp;
+        
+        file.read(&type, sizeof(type));
+        file.read(reinterpret_cast<char*>(&x), sizeof(x));
+        file.read(reinterpret_cast<char*>(&y), sizeof(y));
+        file.read(reinterpret_cast<char*>(&hp), sizeof(hp));
+        
+        // Recreate enemy based on type
+        std::unique_ptr<Enemy> enemy;
+        switch (type) {
+            case 'A': enemy = std::make_unique<Alpha>(resources, x, y); break;
+            case 'B': enemy = std::make_unique<Beta>(resources, x, y); break;
+            case 'G': enemy = std::make_unique<Gamma>(resources, x, y); break;
+            case 'D': enemy = std::make_unique<Dragon>(resources); break;
+            case 'M': enemy = std::make_unique<Monster>(resources); break;
+            default: continue;
+        }
+        if (enemy) {
+            // Position already set in constructor, but set health
+            while (enemy->getHealth() > hp && !enemy->isDead()) {
+                enemy->takeDamage(1);
+            }
+            enemies.push_back(std::move(enemy));
+        }
+    }
+    
+    file.close();
+    powerups.clear();
+    powerUpSpawnTimer = 0.f;
+    
+    std::cout << "Game loaded! Level: " << level << " Score: " << score 
+              << " (" << enemies.size() << " enemies)" << std::endl;
+    return true;
 }
