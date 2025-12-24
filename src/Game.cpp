@@ -505,7 +505,7 @@ void Game::spawnExplosion(float x, float y) {
         Explosion exp;
         exp.sprite.emplace(tex);
         exp.sprite->setPosition({x, y});
-        exp.sprite->setScale({0.5f, 0.5f});  // Smaller scale for 256px frames
+        exp.sprite->setScale({0.5f, 0.5f}); 
         exp.timer = Explosion::FRAME_COUNT * Explosion::FRAME_DURATION;  // Total duration
         exp.frame = 0;
         // Set first frame
