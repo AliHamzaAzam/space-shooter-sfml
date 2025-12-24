@@ -36,6 +36,7 @@ public:
     LevelState getState() const { return state; }
     int getLevelNumber() const;
     bool isVictory() const { return state == LevelState::Victory; }
+    void reset() { state = LevelState::Level1; }
     
 private:
     void spawnGridFormation(std::vector<std::unique_ptr<Enemy>>& enemies, int rows, int cols);

@@ -10,7 +10,10 @@
 
 class ResourceManager {
 public:
-    ResourceManager() = default;
+    ResourceManager() {
+        basePath = std::filesystem::current_path() / "assets";
+        std::cout << "Resource base path: " << basePath << std::endl;
+    }
     ~ResourceManager() = default;
     
     // Non-copyable
@@ -19,7 +22,7 @@ public:
 
     void setBasePath(const std::filesystem::path& path) {
         basePath = path;
-        std::cout << "Resource base path: " << basePath << std::endl;
+        std::cout << "Resource base path updated: " << basePath << std::endl;
     }
 
     sf::Texture& getTexture(const std::string& filename) {
@@ -52,6 +55,10 @@ public:
         
         fonts[filename] = std::move(font);
         return fonts[filename];
+    }
+    
+    std::string getBasePath() const {
+        return basePath.string();
     }
     
     void clear() {

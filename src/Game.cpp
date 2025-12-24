@@ -18,16 +18,13 @@
 
 Game::Game() 
     : window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "Space Shooter")
-    , state(GameState::Playing)
+    , state(GameState::Menu)
     , isRunning(true)
     , levelManager(resources)
+    , menu(resources)
 {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     window.setFramerateLimit(60);
-    
-    // Set up resource manager with path relative to executable
-    auto execPath = std::filesystem::current_path();
-    resources.setBasePath(execPath / "assets");
     
     // Load background
     try {
@@ -37,12 +34,6 @@ Game::Game()
     } catch (const std::exception& e) {
         std::cerr << "Warning: " << e.what() << std::endl;
     }
-    
-    // Create player
-    player = std::make_unique<Spaceship>(resources);
-    
-    // Spawn first level
-    levelManager.spawnLevel(enemies);
     
     std::cout << "Game initialized successfully!" << std::endl;
 }
@@ -64,6 +55,32 @@ void Game::run() {
     float accumulator = 0.f;
     
     while (window.isOpen() && isRunning) {
+        // Handle menu states
+        if (state == GameState::Menu) {
+            showMainMenu();
+            clock.restart();
+            continue;
+        }
+        
+        if (state == GameState::Paused) {
+            auto result = menu.showPauseMenu(window);
+            if (result == MenuResult::Resume) {
+                state = GameState::Playing;
+            } else if (result == MenuResult::Restart) {
+                restartGame();
+            } else if (result == MenuResult::Return || result == MenuResult::Quit) {
+                state = GameState::Menu;
+            }
+            clock.restart();
+            continue;
+        }
+        
+        if (state == GameState::GameOver) {
+            handleGameOver();
+            clock.restart();
+            continue;
+        }
+        
         float dt = clock.restart().asSeconds();
         accumulator += dt;
         
@@ -125,6 +142,13 @@ void Game::update(float dt) {
     // Update player
     if (player) {
         player->update(dt);
+        
+        // Check for player death
+        if (player->getHealth() <= 0) {
+            std::cout << "GAME OVER! Final Score: " << player->getScore() << std::endl;
+            state = GameState::GameOver;
+            return;
+        }
     }
     
     // Update enemies (pass player position for aimed bombs)
@@ -343,4 +367,54 @@ void Game::render() {
     }
     
     window.display();
+}
+
+void Game::showMainMenu() {
+    auto result = menu.showMainMenu(window);
+    
+    switch (result) {
+        case MenuResult::Play:
+            restartGame();
+            break;
+        case MenuResult::Leaderboard: {
+            menu.showLeaderboard(window);
+            break;
+        }
+        case MenuResult::Help:
+            menu.showHelp(window);
+            break;
+        case MenuResult::Quit:
+            isRunning = false;
+            break;
+        default:
+            break;
+    }
+}
+
+void Game::restartGame() {
+    // Reset player
+    player = std::make_unique<Spaceship>(resources);
+    
+    // Reset level manager to level 1 - clear enemies directly
+    enemies.clear();
+    levelManager.reset();  
+    levelManager.spawnLevel(enemies);
+    
+    // Clear power-ups
+    powerups.clear();
+    powerUpSpawnTimer = 0.f;
+    
+    state = GameState::Playing;
+    std::cout << "=== NEW GAME ===" << std::endl;
+}
+
+void Game::handleGameOver() {
+    std::string playerName;
+    int finalScore = player ? player->getScore() : 0;
+    
+    auto result = menu.showGameOver(window, finalScore, playerName);
+    
+    if (result == MenuResult::Return || result == MenuResult::Quit) {
+        state = GameState::Menu;
+    }
 }

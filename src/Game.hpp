@@ -7,6 +7,7 @@
 #include <optional>
 #include "ResourceManager.hpp"
 #include "LevelManager.hpp"
+#include "Menu.hpp"
 #include "entities/powerups/AddOn.hpp"
 
 // Forward declarations
@@ -45,6 +46,9 @@ private:
     void checkCollisions();
     void cleanupDestroyedEntities();
     void checkLevelComplete();
+    void restartGame();
+    void showMainMenu();
+    void handleGameOver();
 
 private:
     static constexpr unsigned int WINDOW_WIDTH = 1000;
@@ -54,6 +58,7 @@ private:
     // Resources must be declared BEFORE sprites that use them
     ResourceManager resources;
     LevelManager levelManager;
+    Menu menu;
     
     sf::RenderWindow window;
     std::optional<sf::Sprite> background;
