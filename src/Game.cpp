@@ -95,6 +95,7 @@ void Game::run() {
         
         // Fixed timestep update
         while (accumulator >= TIME_PER_FRAME) {
+            processMouseInput();  // Mouse control mode
             update(TIME_PER_FRAME);
             accumulator -= TIME_PER_FRAME;
         }
@@ -138,6 +139,33 @@ void Game::handleKeyRelease(sf::Keyboard::Key key) {
     // Forward to player
     if (player) {
         player->onKeyReleased(key);
+    }
+}
+
+void Game::processMouseInput() {
+    if (!useMouseControl || !player || state != GameState::Playing) return;
+    
+    auto mousePos = sf::Mouse::getPosition(window);
+    auto playerPos = player->getPosition();
+    
+    // Move ship toward mouse position
+    if (mousePos.x < playerPos.x - 10) player->onKeyPressed(sf::Keyboard::Key::Left);
+    else player->onKeyReleased(sf::Keyboard::Key::Left);
+    
+    if (mousePos.x > playerPos.x + 10) player->onKeyPressed(sf::Keyboard::Key::Right);
+    else player->onKeyReleased(sf::Keyboard::Key::Right);
+    
+    if (mousePos.y < playerPos.y - 10) player->onKeyPressed(sf::Keyboard::Key::Up);
+    else player->onKeyReleased(sf::Keyboard::Key::Up);
+    
+    if (mousePos.y > playerPos.y + 10) player->onKeyPressed(sf::Keyboard::Key::Down);
+    else player->onKeyReleased(sf::Keyboard::Key::Down);
+    
+    // Click to fire
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        player->onKeyPressed(sf::Keyboard::Key::Space);
+    } else {
+        player->onKeyReleased(sf::Keyboard::Key::Space);
     }
 }
 
@@ -393,8 +421,11 @@ void Game::showMainMenu() {
         case MenuResult::Help:
             menu.showHelp(window);
             break;
+        case MenuResult::About:
+            menu.showAbout(window);
+            break;
         case MenuResult::Options:
-            selectedShipType = menu.showOptions(window, selectedShipType);
+            selectedShipType = menu.showOptions(window, selectedShipType, useMouseControl);
             break;
         case MenuResult::Quit:
             isRunning = false;

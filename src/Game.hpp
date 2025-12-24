@@ -40,6 +40,7 @@ private:
     
     void handleKeyPress(sf::Keyboard::Key key);
     void handleKeyRelease(sf::Keyboard::Key key);
+    void processMouseInput();  // Mouse control mode
     
     // Game logic
     void spawnPowerUp();
@@ -79,7 +80,15 @@ private:
     
     // Settings
     int selectedShipType = 1;  // 1=red, 2=green, 3=orange
+    bool useMouseControl = false;  // Mouse vs keyboard
     sf::Font hudFont;
+    
+    // Explosions
+    struct Explosion {
+        sf::Sprite sprite;
+        float timer;
+    };
+    std::vector<Explosion> explosions;
     
     // Other entities
     std::vector<std::unique_ptr<Entity>> entities;

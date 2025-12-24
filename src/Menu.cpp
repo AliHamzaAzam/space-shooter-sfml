@@ -45,14 +45,16 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
     sf::Text scoreBtn(font, "Leaderboard", 36);
     sf::Text optionsBtn(font, "Options", 36);
     sf::Text helpBtn(font, "Help", 36);
+    sf::Text aboutBtn(font, "About", 36);
     sf::Text quitBtn(font, "Quit", 36);
     
     centerText(title, 125);
-    centerText(playBtn, 300);
-    centerText(scoreBtn, 370);
-    centerText(optionsBtn, 440);
-    centerText(helpBtn, 510);
-    centerText(quitBtn, 580);
+    centerText(playBtn, 280);
+    centerText(scoreBtn, 345);
+    centerText(optionsBtn, 410);
+    centerText(helpBtn, 475);
+    centerText(aboutBtn, 540);
+    centerText(quitBtn, 605);
     
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
@@ -68,6 +70,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
                     if (isMouseOver(scoreBtn, mousePos)) return MenuResult::Leaderboard;
                     if (isMouseOver(optionsBtn, mousePos)) return MenuResult::Options;
                     if (isMouseOver(helpBtn, mousePos)) return MenuResult::Help;
+                    if (isMouseOver(aboutBtn, mousePos)) return MenuResult::About;
                     if (isMouseOver(quitBtn, mousePos)) return MenuResult::Quit;
                 }
             }
@@ -79,6 +82,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
         scoreBtn.setFillColor(isMouseOver(scoreBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         optionsBtn.setFillColor(isMouseOver(optionsBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         helpBtn.setFillColor(isMouseOver(helpBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
+        aboutBtn.setFillColor(isMouseOver(aboutBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         quitBtn.setFillColor(isMouseOver(quitBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         
         window.clear();
@@ -88,6 +92,7 @@ MenuResult Menu::showMainMenu(sf::RenderWindow& window) {
         window.draw(scoreBtn);
         window.draw(optionsBtn);
         window.draw(helpBtn);
+        window.draw(aboutBtn);
         window.draw(quitBtn);
         window.display();
     }
@@ -344,20 +349,24 @@ void Menu::saveScore(const std::string& name, int score) {
     }
 }
 
-int Menu::showOptions(sf::RenderWindow& window, int currentShip) {
+int Menu::showOptions(sf::RenderWindow& window, int currentShip, bool& mouseControl) {
     sf::Text title(font, "Options", 60);
     sf::Text shipLabel(font, "Select Ship:", 36);
+    sf::Text controlLabel(font, "Controls:", 30);
+    sf::Text controlBtn(font, mouseControl ? "[Mouse]" : "[Keyboard]", 28);
     sf::Text returnBtn(font, "Return", 36);
     
-    centerText(title, 100);
-    centerText(shipLabel, 220);
+    centerText(title, 80);
+    centerText(shipLabel, 180);
+    centerText(controlLabel, 500);
+    centerText(controlBtn, 550);
     centerText(returnBtn, 700);
     
     int selectedShip = currentShip;
     
     // Load ship icons - center them evenly across screen
     std::optional<sf::Sprite> ship1, ship2, ship3;
-    float shipY = 320.f;
+    float shipY = 260.f;
     float shipSpacing = 250.f;
     float startX = (SCREEN_WIDTH - 2 * shipSpacing) / 2.f;
     
@@ -409,6 +418,12 @@ int Menu::showOptions(sf::RenderWindow& window, int currentShip) {
                         selectedShip = 3;
                     }
                     
+                    if (isMouseOver(controlBtn, mousePos)) {
+                        mouseControl = !mouseControl;
+                        controlBtn.setString(mouseControl ? "[Mouse]" : "[Keyboard]");
+                        centerText(controlBtn, 550);
+                    }
+                    
                     if (isMouseOver(returnBtn, mousePos)) {
                         return selectedShip;
                     }
@@ -426,6 +441,7 @@ int Menu::showOptions(sf::RenderWindow& window, int currentShip) {
         selector.setPosition({bounds.position.x - 5.f, bounds.position.y - 5.f});
         
         auto mousePos = sf::Mouse::getPosition(window);
+        controlBtn.setFillColor(isMouseOver(controlBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         returnBtn.setFillColor(isMouseOver(returnBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
         
         window.clear();
@@ -436,8 +452,56 @@ int Menu::showOptions(sf::RenderWindow& window, int currentShip) {
         if (ship2) window.draw(*ship2);
         if (ship3) window.draw(*ship3);
         window.draw(selector);
+        window.draw(controlLabel);
+        window.draw(controlBtn);
         window.draw(returnBtn);
         window.display();
     }
     return selectedShip;
+}
+
+MenuResult Menu::showAbout(sf::RenderWindow& window) {
+    sf::Text title(font, "About", 60);
+    sf::Text line1(font, "Space Shooter", 36);
+    sf::Text line2(font, "A CPP game using SFML 3.x", 24);
+    sf::Text line3(font, "Original by Ali Hamza Azam", 24);
+    sf::Text line4(font, "Rebuilt with modern practices", 24);
+    sf::Text returnBtn(font, "Return", 36);
+    
+    centerText(title, 100);
+    centerText(line1, 250);
+    centerText(line2, 320);
+    centerText(line3, 400);
+    centerText(line4, 450);
+    centerText(returnBtn, 650);
+    
+    while (window.isOpen()) {
+        while (auto event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return MenuResult::Quit;
+            }
+            
+            if (auto* mouseBtn = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if (mouseBtn->button == sf::Mouse::Button::Left) {
+                    auto mousePos = sf::Mouse::getPosition(window);
+                    if (isMouseOver(returnBtn, mousePos)) return MenuResult::Return;
+                }
+            }
+        }
+        
+        auto mousePos = sf::Mouse::getPosition(window);
+        returnBtn.setFillColor(isMouseOver(returnBtn, mousePos) ? sf::Color::Yellow : sf::Color::White);
+        
+        window.clear();
+        if (background) window.draw(*background);
+        window.draw(title);
+        window.draw(line1);
+        window.draw(line2);
+        window.draw(line3);
+        window.draw(line4);
+        window.draw(returnBtn);
+        window.display();
+    }
+    return MenuResult::Quit;
 }
