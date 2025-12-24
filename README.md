@@ -2,6 +2,8 @@
 
 A classic arcade-style space shooter game built with modern C++17 and SFML 3.x.
 
+> Originally developed in 2023 as an OOP course project. Rebuilt and modernized for GitHub publication.
+
 ![Gameplay](screenshots/gameplay.png)
 
 ## Features
@@ -49,17 +51,32 @@ cd bin && ./SpaceShooter
 
 ```
 src/
-├── Game.cpp/hpp          # Main game loop
-├── Menu.cpp/hpp          # UI screens
-├── LevelManager.cpp/hpp  # Level progression
-├── ResourceManager.hpp   # Asset loading
+├── Game.cpp/hpp          # Main game loop, state management
+├── Menu.cpp/hpp          # UI screens (main, pause, options, etc.)
+├── LevelManager.cpp/hpp  # Level progression & enemy spawning
+├── ResourceManager.hpp   # Texture/font caching with RAII
 └── entities/
-    ├── Spaceship.cpp/hpp # Player
-    ├── Bullet.cpp/hpp    # Projectiles
-    ├── enemies/          # Enemy types
-    └── powerups/         # Power-up types
+    ├── Entity.hpp        # Base class for all game objects
+    ├── Spaceship.cpp/hpp # Player with momentum physics
+    ├── Bullet.cpp/hpp    # Projectile system
+    ├── enemies/          # Enemy hierarchy (Invader → Alpha/Beta/Gamma)
+    └── powerups/         # AddOn base → Lives, Fire, PowerUp, Danger
 ```
+
+## Architecture
+
+### Design Patterns
+- **Entity-Component System** - Base `Entity` class with sprites, positions, collision
+- **Factory Pattern** - `LevelManager` creates enemy formations
+- **Resource Manager** - Singleton-like caching for textures/fonts
+- **State Machine** - `GameState` enum manages game flow
+
+### Key Features Implementation
+- **Binary Save System** - Complete state serialization (player + all enemies)
+- **Sprite Sheet Animation** - Frame-based animation for explosions/ships
+- **Collision Detection** - AABB intersection between bullets and enemies
+- **Movement Physics** - Acceleration/friction for smooth player controls
 
 ## License
 
-MIT License
+[MIT License](LICENSE)
