@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include <algorithm>
 #include "entities/Entity.hpp"
 #include "entities/Spaceship.hpp"
 #include "entities/Bullet.hpp"

@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <algorithm>
 
 class Bullet;
 class ResourceManager;
