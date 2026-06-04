@@ -2,6 +2,8 @@
 #include "Bullet.hpp"
 #include "../ResourceManager.hpp"
 #include <iostream>
+#include <cmath>
+#include <algorithm>
 
 Spaceship::Spaceship(ResourceManager& res, int shipType) : resources(res) {
     // Ship textures 

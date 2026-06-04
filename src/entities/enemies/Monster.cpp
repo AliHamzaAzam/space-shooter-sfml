@@ -2,6 +2,7 @@
 #include "Bomb.hpp"
 #include "../../ResourceManager.hpp"
 #include <cmath>
+#include <algorithm>
 
 Monster::Monster(ResourceManager& resources, int x, int y)
     : Enemy(resources, 100, 'M')  // 100 HP, type 'M' for Monster

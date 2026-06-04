@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Invader.hpp"
+#include <cstdlib>
 
 // Alpha - Row 0, Health 3, Slow bombs (5s cooldown), straight down, slow movement
 class Alpha : public Invader {

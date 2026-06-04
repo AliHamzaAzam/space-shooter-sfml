@@ -3,6 +3,7 @@
 #include "../../ResourceManager.hpp"
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
 
 Dragon::Dragon(ResourceManager& resources, int x, int y)
     : Enemy(resources, 100, 'D')  // 100 HP, type 'D' for Dragon
