@@ -5,8 +5,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Find SFML 3.x
-find_package(SFML 3 COMPONENTS Graphics Window System Audio REQUIRED)
+# Fetch and statically link SFML 3.x (no system install needed)
+include(FetchContent)
+set(BUILD_SHARED_LIBS OFF)
+FetchContent_Declare(SFML
+    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_TAG 3.0.1
+    GIT_SHALLOW ON)
+FetchContent_MakeAvailable(SFML)
 
 # Source files
 set(SOURCES
