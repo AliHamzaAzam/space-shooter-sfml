@@ -7,11 +7,44 @@
 #include <stdexcept>
 #include <iostream>
 #include <memory>
+#include <system_error>
+
+#if defined(_WIN32)
+  #include <windows.h>
+#elif defined(__APPLE__)
+  #include <mach-o/dyld.h>
+  #include <cstdint>
+#endif
+
+// Directory containing the running executable, so assets resolve regardless of the
+// current working directory (run-from-anywhere). Falls back to CWD on failure.
+inline std::filesystem::path getExecutableDir() {
+#if defined(_WIN32)
+    wchar_t buf[MAX_PATH];
+    DWORD len = GetModuleFileNameW(nullptr, buf, MAX_PATH);
+    if (len > 0 && len < MAX_PATH)
+        return std::filesystem::path(std::wstring(buf, len)).parent_path();
+#elif defined(__APPLE__)
+    std::uint32_t size = 0;
+    _NSGetExecutablePath(nullptr, &size);
+    std::string buf(size, '\0');
+    if (size > 0 && _NSGetExecutablePath(buf.data(), &size) == 0) {
+        std::error_code ec;
+        auto p = std::filesystem::canonical(buf.c_str(), ec);
+        if (!ec) return p.parent_path();
+    }
+#elif defined(__linux__)
+    std::error_code ec;
+    auto p = std::filesystem::canonical("/proc/self/exe", ec);
+    if (!ec) return p.parent_path();
+#endif
+    return std::filesystem::current_path();
+}
 
 class ResourceManager {
 public:
     ResourceManager() {
-        basePath = std::filesystem::current_path() / "assets";
+        basePath = getExecutableDir() / "assets";
         std::cout << "Resource base path: " << basePath << std::endl;
     }
     ~ResourceManager() = default;
